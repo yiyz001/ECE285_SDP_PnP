@@ -3,7 +3,7 @@ import numpy as np
 import scipy
 import casadi as cs
 from core.manifold_utils import proper_svd
-from core.model_utils import eval_h, eval_H
+from core.model_utils import eval_h, eval_H, rot_init_multi
 
 
 def riemannian_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
@@ -141,3 +141,46 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
             costs.append(r_prev.T @ Omega @ r_prev)
 
     return r_prev.reshape(3, 3)
+
+
+def multi_search_wrapper(Omega: np.ndarray, solver: callable, max_steps: int | None = 500) -> np.ndarray:
+    """
+    Solve the PnP problem using multiple initializations
+
+    :param Omega: Positive semi-definite problem data
+    :param solver: Available solvers: 'riemannian_gradient_descent', 'projected_gradient_descent', 'sequential_qp'
+    :param max_steps: Maximum steps for solver
+
+    :return: Rotations matrix R
+    """
+    # Find optimal solution on 8-sphere
+    Sigma, Lambda = np.linalg.eig(Omega)
+
+    # Eigenvalues in ascending order
+    sorted_index = np.argsort(np.abs(Sigma))
+
+    # Generate initializations
+    r_init_all = rot_init_multi(Lambda)
+
+    # # Select acceptable initializations
+    # eig_upper_bound = np.min(np.sum((r_init_all @ Omega) * r_init_all, axis=1)) / 3.0
+    # init_len = np.sum(np.abs(Sigma) <= eig_upper_bound)
+    # min_eig_index = sorted_index[:init_len]
+    # min_eig_vec = Lambda[:, min_eig_index]
+
+    # Initialization
+    rot_ini_vec = r_init_all
+    total_tasks = r_init_all.shape[0]
+    costs = []
+    sols = []
+
+    for i in range(total_tasks):
+        R = solver(Omega, rot_ini_vec[i].reshape(3, 3), max_steps)
+        cost = (R.flatten()).T @ Omega @ (R.flatten())
+        sols.append(R)
+        costs.append(cost)
+
+    # Select the best among all solutions
+    best_idx = np.argmin(np.array(costs))
+
+    return sols[best_idx]

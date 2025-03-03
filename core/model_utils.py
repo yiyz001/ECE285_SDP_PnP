@@ -38,3 +38,21 @@ def eval_H(x: np.ndarray) -> np.ndarray:
                   ])
 
     return H
+
+
+def rot_init_multi(min_eig_vec):
+    # Number of Eigen vectors
+    num_inits = int(min_eig_vec.size / 9)
+
+    # Solve Nearest Orthogonal Matrix Approximation Problem
+    U, _, V_hat = np.linalg.svd(np.sqrt(3) * min_eig_vec.T.reshape(-1, 3, 3))
+    mU, _, mV_hat = np.linalg.svd(-np.sqrt(3) * min_eig_vec.T.reshape(-1, 3, 3))
+    C = np.kron(np.ones(num_inits)[:, None, None], np.eye(3))
+    mC = C.copy()
+    C[:, 2, 2] = np.sign(np.real(np.linalg.det(U @ V_hat)))
+    mC[:, 2, 2] = np.sign(np.real(np.linalg.det(mU @ mV_hat)))
+    R_ini = np.real(U @ C @ V_hat)
+    mR_ini = np.real(mU @ mC @ mV_hat)
+    x_ini = np.concatenate((R_ini.reshape(num_inits, 9), mR_ini.reshape(num_inits, 9)))
+
+    return x_ini
