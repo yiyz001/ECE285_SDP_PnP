@@ -139,7 +139,7 @@ def generate_data(num_obsv: int) -> (list, np.ndarray, np.ndarray):
 
     :return: ground-truth [rotation.T, translation, camera frame landmark], homogeneous observations, landmarks
     """
-    u = np.random.uniform(0.3, 3) * np.random.randn(num_obsv, 3)
+    u = np.random.uniform(1, 3) * np.random.randn(num_obsv, 3)
     u[:, 2] = np.abs(u[:, 2])
 
     theta = np.random.uniform(-np.pi, np.pi, 3)

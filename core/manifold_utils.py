@@ -20,3 +20,28 @@ def hat_map(x: np.ndarray) -> np.ndarray:
     X[..., 2, 1] = x[:, 0]
 
     return X
+
+
+def proper_svd(x: np.ndarray):
+    """
+    Proper singular value decomposition
+
+    :param x: input array of shape (n, dim, dim)
+
+
+    :return: U of shape (n, dim, dim), Sof shape (n, dim, dim), V.T of shape (n, dim, dim)
+    """
+    # Singular value decomposition
+    Up, Sp, Vt = np.linalg.svd(x)
+
+    # Make proper
+    U = Up.copy()
+    U[..., -1] = U[..., -1] * np.sign(np.linalg.det(Up))
+
+    S = Sp.copy()
+    S[..., -1] = S[..., -1] * np.sign(np.linalg.det(Up) * np.linalg.det(Vt))
+
+    V = np.moveaxis(Vt, -1, -2).copy()
+    V[..., -1] = V[..., -1] * np.sign(np.linalg.det(Vt))
+
+    return U, S, np.moveaxis(V, -1, -2)
