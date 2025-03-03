@@ -1,7 +1,9 @@
 from __future__ import annotations
 import numpy as np
 import scipy
+import casadi as cs
 from core.manifold_utils import proper_svd
+from core.model_utils import eval_h, eval_H
 
 
 def riemannian_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
@@ -59,8 +61,8 @@ def projected_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
 
     :param Omega: Data matrix Omega
     :param R_init: Initial guess of rotation matrix
-    :param max_steps: Maximum steps allowed for Riemannian gradient descent
-    :param step_size: Step size for Riemannian gradient descent
+    :param max_steps: Maximum steps allowed for projected gradient descent
+    :param step_size: Step size for projected gradient descent
 
     :return: rotation matrix R
     """
@@ -82,6 +84,46 @@ def projected_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
 
         # Early termination
         if np.linalg.norm(grad_euclidean) <= 1e-3:
+            return r_prev.reshape(3, 3)
+
+    return r_prev.reshape(3, 3)
+
+
+def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500) -> np.ndarray:
+    """
+    Solve the PnP problem using Riemannian gradient descent.
+
+    :param Omega: Data matrix Omega
+    :param R_init: Initial guess of rotation matrix
+    :param max_steps: Maximum steps allowed
+
+    :return: rotation matrix R
+    """
+    # Initialize Casadi
+    H = cs.DM.ones(9, 9)
+    A = cs.DM.ones(6, 9)
+    opts = {'osqp.verbose': False, 'print_time': False, 'error_on_fail': False}
+    qp = {'h': H.sparsity(), 'a': A.sparsity()}
+    solver = cs.conic('S', 'osqp', qp, opts)
+
+    # Initialize initial guess of R
+    r_prev = R_init.flatten()
+
+    for i in range(max_steps):
+        # Evaluate constraint function h
+        h_r = eval_h(r_prev)
+
+        # Solve QP
+        sol = solver(h=2 * Omega, g=2 * Omega @ r_prev, a=eval_H(r_prev), lba=-h_r-1e-1, uba=-h_r+1e-1)
+
+        # Extract solution
+        delta = np.array(sol['x']).flatten()
+
+        # Update
+        r_prev = r_prev + delta
+
+        # Early termination
+        if np.linalg.norm(delta) <= 1e-3:
             return r_prev.reshape(3, 3)
 
     return r_prev.reshape(3, 3)
