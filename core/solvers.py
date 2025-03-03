@@ -99,6 +99,10 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
 
     :return: rotation matrix R
     """
+    # Init data container
+    costs = []
+    sols = []
+
     # Initialize Casadi
     H = cs.DM.ones(9, 9)
     A = cs.DM.ones(6, 9)
@@ -108,6 +112,8 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
 
     # Initialize initial guess of R
     r_prev = R_init.flatten()
+    sols.append(R_init)
+    costs.append(r_prev.T @ Omega @ r_prev)
 
     for i in range(max_steps):
         # Evaluate constraint function h
@@ -125,5 +131,13 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
         # Early termination
         if np.linalg.norm(delta) <= 1e-3:
             return r_prev.reshape(3, 3)
+
+        # Infeasible detection
+        if not solver.stats()['success']:
+            min_idx = np.argmin(np.array(costs))
+            return sols[min_idx]
+        else:
+            sols.append(r_prev.reshape(3, 3))
+            costs.append(r_prev.T @ Omega @ r_prev)
 
     return r_prev.reshape(3, 3)
