@@ -40,7 +40,14 @@ def eval_H(x: np.ndarray) -> np.ndarray:
     return H
 
 
-def rot_init_multi(min_eig_vec):
+def rot_init_multi(min_eig_vec: np.ndarray):
+    """
+    Generate multiple initializations based on SQPNP paper
+
+    :param min_eig_vec: eigenvector of Omega matrix
+
+    :return: rotation initial guesses
+    """
     # Number of Eigen vectors
     num_inits = int(min_eig_vec.size / 9)
 
@@ -56,3 +63,42 @@ def rot_init_multi(min_eig_vec):
     x_ini = np.concatenate((R_ini.reshape(num_inits, 9), mR_ini.reshape(num_inits, 9)))
 
     return x_ini
+
+
+def generate_constraints():
+    """
+    Cast SO(3) constraints into QC form
+
+    :return: list V, list v, list c
+    """
+    # Initialize container
+    V = []
+
+    # Fill in v and c
+    vE = np.zeros((9, 9))
+    vE[6:, 6:] = -np.eye(3)
+    v = [np.zeros(9), np.zeros(9), np.zeros(9), np.zeros(9), np.zeros(9), vE[:, 6], vE[:, 7], vE[:, 8]]
+    c = [-1, -1, 0, 0, 0, 0, 0, 0]
+
+    # Create template matrix for V_i
+    for i in range(8):
+        V.append(np.zeros((9, 9)))
+
+    # Fill in V
+    V[0][:3, :3] = np.eye(3)
+    V[1][3:6, 3:6] = np.eye(3)
+    V[2][:3, 3:6] = np.eye(3)
+    V[3][:3, 6:] = np.eye(3)
+    V[4][3:6, 6:] = np.eye(3)
+    V[5][1, 5] = 1
+    V[5][2, 4] = -1
+    V[6][2, 3] = 1
+    V[6][0, 5] = -1
+    V[7][0, 4] = 1
+    V[7][1, 3] = -1
+
+    # Make V symmetric
+    for i in range(8):
+        V[i] = 0.5 * (V[i] + V[i].T)
+
+    return V, v, c

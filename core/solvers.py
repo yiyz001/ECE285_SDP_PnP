@@ -2,8 +2,9 @@ from __future__ import annotations
 import numpy as np
 import scipy
 import casadi as cs
+import cvxpy as cp
 from core.manifold_utils import proper_svd
-from core.model_utils import eval_h, eval_H, rot_init_multi
+from core.model_utils import eval_h, eval_H, rot_init_multi, generate_constraints
 
 
 def riemannian_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
@@ -141,6 +142,117 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
             costs.append(r_prev.T @ Omega @ r_prev)
 
     return r_prev.reshape(3, 3)
+
+
+def original_qcqp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
+    """
+    Reformulate the PnP problem into a QCQP and solve it directly using scipy
+
+    :param Omega: data matrix Omega
+    :param R_init: initial guess
+    :param max_steps: maximum steps allowed, added to keep interface consistent
+
+    :return: rotation matrix R
+    """
+    # Create objective and constraints
+    # objective function, avoid lambda
+    def obj(x):
+        return x.T @ Omega @ x
+
+    # Constraint function for each qc, avoid lambda
+    def constraint_func(x, V, v, c):
+        return x.T @ V @ x + v.T @ x + c
+
+    # Define constraints
+    V_list, v_list, c_list = generate_constraints()
+    constraints = ({'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[0], v_list[0], c_list[0])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[1], v_list[1], c_list[1])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[2], v_list[2], c_list[2])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[3], v_list[3], c_list[3])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[4], v_list[4], c_list[4])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[5], v_list[5], c_list[5])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[6], v_list[6], c_list[6])},
+                   {'type': 'eq', 'fun': lambda x:  constraint_func(x, V_list[7], v_list[7], c_list[7])})
+
+    # Solve the problem
+    res = scipy.optimize.minimize(obj, R_init.flatten(), method='trust-constr', constraints=constraints)
+    r = res.x
+
+    return r.reshape(3, 3)
+
+
+def SDP_relaxation(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
+    """
+    SDP relaxation of the PnP-QCQP problem
+
+    :param Omega: data matrix Omega
+    :param R_init: initial guess, added to keep interface consistent
+    :param max_steps: maximum steps allowed, added to keep interface consistent
+
+    :return: rotation matrix R
+    """
+    # Create objective and constraints
+    X = cp.Variable((9, 9), symmetric=True)
+    Y = cp.Variable((10, 10), symmetric=True)
+    x = cp.Variable(9)
+    # objective function, avoid lambda
+    obj = cp.Minimize(cp.trace(Omega @ X))
+    # Create constraints
+    V, v, c = generate_constraints()
+    constraints = []
+    for i in range(8):
+        constraints.append(cp.trace(V[i] @ X) + v[i].T @ x + c[i] == 0)
+    constraints.append(X >> 0)
+    constraints.append(Y[0, 0] == 1)
+    constraints.append(Y[1:, 1:] == X)
+    constraints.append(Y[1:, 0] == x)
+    constraints.append(Y[0, 1:] == x)
+    constraints.append(Y >> 0)
+
+    # Solve the problem
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+
+    # Extract rotation matrix
+    r = x.value
+
+    return r.reshape(3, 3)
+
+
+def dual_QCQP(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
+    """
+    Dual of the PnP-QCQP problem
+
+    :param Omega: data matrix Omega
+    :param R_init: initial guess, added to keep interface consistent
+    :param max_steps: maximum steps allowed, added to keep interface consistent
+
+    :return: rotation matrix R
+    """
+    # Create objective and constraints
+    gamma = cp.Variable(1)
+    lamb = cp.Variable(8)
+    Y = cp.Variable((10, 10), symmetric=True)
+    # objective function, avoid lambda
+    obj = cp.Minimize(-gamma)
+    # Create constraints
+    V, v, c = generate_constraints()
+    y1 = -gamma
+    y2 = np.zeros(9)
+    y3 = np.zeros((9, 9))
+    for i in range(8):
+        y1 = y1 + lamb[i] * c[i]
+        y2 = y2 + 0.5 * lamb[i] * v[i]
+        y3 = y3 + lamb[i] * V[i]
+    constraints = [Y[0, 0] == y1, Y[0, 1:] == y2, Y[1:, 0] == y2, Y[1:, 1:] == y3, Y >> 0]
+
+    # Solve the problem
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+
+    print("Lambda values: ", lamb.value)
+
+    return gamma.value
 
 
 def multi_search_wrapper(Omega: np.ndarray, solver: callable, max_steps: int | None = 500) -> np.ndarray:
