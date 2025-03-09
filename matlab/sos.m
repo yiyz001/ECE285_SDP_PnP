@@ -75,7 +75,7 @@ for i = 1:r
     s_minus= {};
 
     Constraints = [];
-    p_sos = p - gamma; 
+    s0 = p - gamma; % s0 = p(x) - gamma - (the terms with ) 
     for j = 1:8
         s_p = polynomial(x,2*(i-1) );
         s_m = polynomial(x,2*(i-1) );
@@ -84,10 +84,10 @@ for i = 1:r
         s_plus{j} = s_p;
         s_minus{j} = s_m;
 
-        p_sos = p_sos + (s_p-s_m)*g_j(Vs{j},vs{j},cs{j},x) + eps*(s_p + s_m);
+        s0 = p_sos - (s_p-s_m)*g_j(Vs{j},vs{j},cs{j},x) - eps*(s_p + s_m);
     end
 
-    Constraints = [Constraints, sos( p_sos )];
+    Constraints = [Constraints, sos( s0 )];
     solvesos(Constraints,-gamma,[],[x;gamma])
     value(gamma)
     gamma_r = [gamma_r,value(gamma)];
