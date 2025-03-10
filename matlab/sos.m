@@ -84,7 +84,7 @@ for i = 1:r
         s_plus{j} = s_p;
         s_minus{j} = s_m;
 
-        s0 = p_sos - (s_p-s_m)*g_j(Vs{j},vs{j},cs{j},x) - eps*(s_p + s_m);
+        s0 = s0 - (s_p-s_m)*g_j(Vs{j},vs{j},cs{j},x) - eps*(s_p + s_m);
     end
 
     Constraints = [Constraints, sos( s0 )];
