@@ -103,7 +103,7 @@ def construct_data_matrix(features, landmarks):
     P = []
     Omega = []
 
-    pbar = tqdm(total=total_frames)
+    # pbar = tqdm(total=total_frames)
     for i in range(total_frames):
         # Observations and landmarks
         u = features[i]
@@ -125,8 +125,8 @@ def construct_data_matrix(features, landmarks):
         ApP_i = A_i + P_i[None, :, :]
         Omega.append(np.sum(ApP_i.transpose(0, 2, 1) @ Q_i @ ApP_i, axis=0))
 
-        pbar.update(1)
-    pbar.close()
+        # pbar.update(1)
+    # pbar.close()
 
     return P, Omega
 

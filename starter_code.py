@@ -1,4 +1,5 @@
 from utils.data_utils import generate_data, kitti_data, construct_data_matrix
+from core.model_utils import re_projection_error
 from core.solvers import riemannian_gradient_descent, projected_gradient_descent, sequential_qp, multi_search_wrapper
 from core.solvers import original_qcqp, SDP_relaxation, dual_QCQP
 import numpy as np
@@ -6,7 +7,7 @@ import numpy as np
 
 if __name__ == '__main__':
     # Generate synthesis data
-    gt_list, obsv_z, lmark_m = generate_data(10)
+    gt_list, obsv_z, lmark_m = generate_data(5)
 
     # Load data from KITTI, we do not have ground-truth this time
     # obsv_z, lmark_m = kitti_data()

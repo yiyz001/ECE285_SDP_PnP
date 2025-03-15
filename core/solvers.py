@@ -1,10 +1,14 @@
 from __future__ import annotations
+import warnings
+import cvxpy.error
 import numpy as np
 import scipy
 import casadi as cs
 import cvxpy as cp
 from core.manifold_utils import proper_svd
 from core.model_utils import eval_h, eval_H, rot_init_multi, generate_constraints
+
+warnings.filterwarnings('ignore')
 
 
 def riemannian_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
@@ -85,9 +89,13 @@ def projected_gradient_descent(Omega: np.ndarray, R_init: np.ndarray,
 
         # Early termination
         if np.linalg.norm(grad_euclidean) <= 1e-3:
-            return r_prev.reshape(3, 3)
+            R_raw = r_prev.reshape(3, 3)
+            U, _, Vt = np.linalg.svd(R_raw)
+            return U @ Vt
 
-    return r_prev.reshape(3, 3)
+    R_raw = r_prev.reshape(3, 3)
+    U, _, Vt = np.linalg.svd(R_raw)
+    return U @ Vt
 
 
 def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500) -> np.ndarray:
@@ -131,17 +139,22 @@ def sequential_qp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
 
         # Early termination
         if np.linalg.norm(delta) <= 1e-3:
-            return r_prev.reshape(3, 3)
+            R_raw = r_prev.reshape(3, 3)
+            U, _, Vt = np.linalg.svd(R_raw)
+            return U @ Vt
 
         # Infeasible detection
         if not solver.stats()['success']:
             min_idx = np.argmin(np.array(costs))
-            return sols[min_idx]
+            U, _, Vt = np.linalg.svd(sols[min_idx])
+            return U @ Vt
         else:
             sols.append(r_prev.reshape(3, 3))
             costs.append(r_prev.T @ Omega @ r_prev)
 
-    return r_prev.reshape(3, 3)
+    R_raw = r_prev.reshape(3, 3)
+    U, _, Vt = np.linalg.svd(R_raw)
+    return U @ Vt
 
 
 def original_qcqp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
@@ -178,7 +191,9 @@ def original_qcqp(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None =
     res = scipy.optimize.minimize(obj, R_init.flatten(), method='trust-constr', constraints=constraints)
     r = res.x
 
-    return r.reshape(3, 3)
+    R_raw = r.reshape(3, 3)
+    U, _, Vt = np.linalg.svd(R_raw)
+    return U @ Vt
 
 
 def SDP_relaxation(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
@@ -211,12 +226,17 @@ def SDP_relaxation(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None 
 
     # Solve the problem
     prob = cp.Problem(obj, constraints)
-    prob.solve()
+    try:
+        prob.solve()
+    except cvxpy.error.SolverError:
+        return np.eye(3)
 
     # Extract rotation matrix
     r = x.value
 
-    return r.reshape(3, 3)
+    R_raw = r.reshape(3, 3)
+    U, _, Vt = np.linalg.svd(R_raw)
+    return U @ Vt
 
 
 def dual_QCQP(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500):
@@ -239,7 +259,7 @@ def dual_QCQP(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500
     V, v, c = generate_constraints()
     y1 = -gamma
     y2 = np.zeros(9)
-    y3 = np.zeros((9, 9))
+    y3 = Omega
     for i in range(8):
         y1 = y1 + lamb[i] * c[i]
         y2 = y2 + 0.5 * lamb[i] * v[i]
@@ -248,9 +268,10 @@ def dual_QCQP(Omega: np.ndarray, R_init: np.ndarray, max_steps: int | None = 500
 
     # Solve the problem
     prob = cp.Problem(obj, constraints)
-    prob.solve()
-
-    print("Lambda values: ", lamb.value)
+    try:
+        prob.solve()
+    except cvxpy.error.SolverError:
+        return np.array([np.inf])
 
     return gamma.value
 

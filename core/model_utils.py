@@ -102,3 +102,46 @@ def generate_constraints():
         V[i] = 0.5 * (V[i] + V[i].T)
 
     return V, v, c
+
+
+def eval_cost(Omega: np.ndarray, R_sol: np.ndarray) -> np.ndarray:
+    """
+    Evaluate the cost function
+
+    :param Omega: data matrix
+    :param R_sol: solution
+
+    :return: cost
+    """
+
+    return R_sol.flatten() @ Omega @ R_sol.flatten()
+
+
+def gt_error(R_gt: np.ndarray, R_sol: np.ndarray) -> np.ndarray:
+    """
+    Measure the distance measured in Frobenius norm between ground truth rotation and estimated rotation
+
+    :param R_gt: Ground truth rotation
+    :param R_sol: Estimated rotation
+
+    :return: error
+    """
+
+    return np.linalg.norm(R_gt - R_sol)
+
+
+def re_projection_error(R: np.ndarray, p: np.ndarray, m: np.ndarray, z: np.ndarray) -> np.ndarray:
+    """
+    Measure the re-projection error using the estimated pose
+
+    :param R: rotation
+    :param p: translation
+    :param m: world-frame points
+    :param z: observations, homogeneous
+
+    :return: re-projection error
+    """
+    z_proj = np.sum(R[None, :, :] * m[:, None, :], axis=-1) + p[None, :]
+    z_homo = z_proj / z_proj[:, 2][:, None]
+
+    return np.sum(np.linalg.norm(z_homo - z, axis=0))
