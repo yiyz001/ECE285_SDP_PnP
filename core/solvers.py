@@ -314,6 +314,6 @@ def multi_search_wrapper(Omega: np.ndarray, solver: callable, max_steps: int | N
         costs.append(cost)
 
     # Select the best among all solutions
-    best_idx = np.argmin(np.array(costs))
+    best_idx = np.argmin(np.abs(np.array(costs)))
 
     return sols[best_idx]

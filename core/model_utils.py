@@ -113,8 +113,10 @@ def eval_cost(Omega: np.ndarray, R_sol: np.ndarray) -> np.ndarray:
 
     :return: cost
     """
+    U, _, Vt = np.linalg.svd(R_sol)
+    R = U @ Vt
 
-    return R_sol.flatten() @ Omega @ R_sol.flatten()
+    return (R.reshape((1, 9)) @ Omega @ R.reshape((9, 1))).squeeze()
 
 
 def gt_error(R_gt: np.ndarray, R_sol: np.ndarray) -> np.ndarray:
@@ -141,7 +143,7 @@ def re_projection_error(R: np.ndarray, p: np.ndarray, m: np.ndarray, z: np.ndarr
 
     :return: re-projection error
     """
-    z_proj = np.sum(R[None, :, :] * m[:, None, :], axis=-1) + p[None, :]
-    z_homo = z_proj / z_proj[:, 2][:, None]
+    z_proj = np.sum(R[None, :, :] * m[:, None, :], axis=-1).squeeze() + p[None, :]
+    z_scale = z_proj[:, 2]
 
-    return np.sum(np.linalg.norm(z_homo[:, :2] - z[:, :2], axis=0))
+    return np.sum(np.linalg.norm(z_proj - z_scale[:, None] * z, axis=-1))
