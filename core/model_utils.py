@@ -144,4 +144,4 @@ def re_projection_error(R: np.ndarray, p: np.ndarray, m: np.ndarray, z: np.ndarr
     z_proj = np.sum(R[None, :, :] * m[:, None, :], axis=-1) + p[None, :]
     z_homo = z_proj / z_proj[:, 2][:, None]
 
-    return np.sum(np.linalg.norm(z_homo - z, axis=0))
+    return np.sum(np.linalg.norm(z_homo[:, :2] - z[:, :2], axis=0))
