@@ -1,4 +1,4 @@
-from utils.data_utils import generate_data, kitti_data, construct_data_matrix
+from utils.data_utils import generate_noisy_data, kitti_data, construct_data_matrix
 from core.solvers import riemannian_gradient_descent, projected_gradient_descent, sequential_qp, multi_search_wrapper
 from core.solvers import original_qcqp, SDP_relaxation, dual_QCQP
 import numpy as np
@@ -10,11 +10,11 @@ import sys
 
 if __name__ == '__main__':
     # Prepare log file
-    f = open("results/out_no_noise.txt", "w")
+    f = open("results/out_high_noise.txt", "w")
     sys.stdout = f
 
     # Test settings
-    test_number = 500
+    test_number = 50
     num_observation = [3, 4, 5, 8, 10]
     test_results = {"prob_data": {}, "pgd": {}, "pgd_multi": {}, "rgd": {}, "rgd_multi": {}, "sqp": {}, "sqp_multi": {},
                     "qcqp": {}, "qcqp_multi": {}, "sdp": {}, "dual": {}}
@@ -24,7 +24,7 @@ if __name__ == '__main__':
         pbar = tqdm(total=test_number)
 
         # Result container
-        problem_data = {"Omega": [], "P": [], "observations": [], "landmarks": [], "gt_R": [], "gt_p": []}
+        problem_data = {"Omega": [], "P": [], "observations": [], "landmarks": [], "gt_R": [], "gt_p": [], "gt_z": []}
         result_pgd = []
         result_pgd_multi = []
         result_rgd = []
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         # Start test
         for itera in range(test_number):
             # Generate synthesis data
-            gt_list, obsv_z, lmark_m = generate_data(num_obsv)
+            gt_list, obsv_z, lmark_m = generate_noisy_data(num_obsv, 0.5)
 
             # Get P and Omega matrices
             list_P, list_Omega = construct_data_matrix([obsv_z[:, :, None]], [lmark_m[:, :, None]])
@@ -72,6 +72,7 @@ if __name__ == '__main__':
             problem_data["landmarks"].append(lmark_m)
             problem_data["gt_R"].append(gt_list[0])
             problem_data["gt_p"].append(gt_list[1])
+            problem_data["gt_z"].append(gt_list[2])
 
             """
             Solver the PnP problem using multiple methods
@@ -169,7 +170,7 @@ if __name__ == '__main__':
 
         pbar.close()
 
-    with open('results/results_no_noise.pkl', 'wb') as handle:
+    with open('results/results_high_noise.pkl', 'wb') as handle:
         pickle.dump(test_results, handle)
 
     f.close()

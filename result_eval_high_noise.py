@@ -9,7 +9,7 @@ mpl.use("Qt5Agg")
 
 
 if __name__ == '__main__':
-    with open('results/test_results.pkl', 'rb') as handle:
+    with open('results/results_high_noise.pkl', 'rb') as handle:
         results = pickle.load(handle)
 
     prob_data = results['prob_data']
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         for inst_num in range(len(pgd[keys])):
             Omega = prob_data[keys]["Omega"][inst_num]
             P = prob_data[keys]["P"][inst_num]
-            z = prob_data[keys]["observations"][inst_num]
+            z = prob_data[keys]["gt_z"][inst_num]
             m = prob_data[keys]["landmarks"][inst_num]
             gt_R = prob_data[keys]["gt_R"][inst_num]
             gt_p = prob_data[keys]["gt_p"][inst_num]
@@ -164,21 +164,20 @@ if __name__ == '__main__':
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_qcqp_multi), label='QCQP_Multi')
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_sdp), label='SDP')
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_dual), label='Dual')
+        ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=15)
         # ax2.legend(loc="best", fontsize=13)
         ax2.set_title('Cost Function Value')
 
         ax3 = fig.add_subplot(133, frameon=True)
-        # ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_pgd), label='PGD')
-        # ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_pgd_multi), label='PGD_Multi')
-        # ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_rgd), label='RGD')
+        ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_pgd), label='PGD')
+        ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_pgd_multi), label='PGD_Multi')
+        ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_rgd), label='RGD')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_rgd_multi), label='RGD_Multi')
-        # ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sqp), label='SQP')
+        ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sqp), label='SQP')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sqp_multi), label='SQP_Multi')
-        # ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp), label='QCQP')
+        ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp), label='QCQP')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp_multi), label='QCQP_Multi')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sdp), label='SDP')
-        # ax3.set_ylim(0, 50)
-        ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
         # ax3.legend(loc="best", fontsize=13)
         ax3.set_title('Re-Projection Error')
 

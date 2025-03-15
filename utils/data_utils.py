@@ -151,6 +151,29 @@ def generate_data(num_obsv: int) -> (list, np.ndarray, np.ndarray):
     return [Rt, p, u], u / u[:, 2][:, None], m
 
 
+def generate_noisy_data(num_obsv: int, noise_level: float) -> (list, np.ndarray, np.ndarray):
+    """
+    Generate observation and landmark pairs
+
+    :param num_obsv: number of observations
+    :param noise_level: covariance for the Gaussian noise
+
+    :return: ground-truth [rotation.T, translation, camera frame landmark], homogeneous observations, landmarks
+    """
+    u = np.random.uniform(1, 3) * np.random.randn(num_obsv, 3)
+    u[:, 2] = np.abs(u[:, 2])
+    u_w_noise = u.copy()
+    u_w_noise[:, :2] = u_w_noise[:, :2] + np.sqrt(noise_level) * np.random.randn(num_obsv, 2)
+
+    theta = np.random.uniform(-np.pi, np.pi, 3)
+    Rt = scipy.linalg.expm(hat_map(theta[None, :])).squeeze()
+    p = np.random.randn(3)
+
+    m = np.sum(Rt.T[None, :, :] * (u - p[None, :])[:, None, :], axis=-1)
+
+    return [Rt, p, u], u_w_noise / u[:, 2][:, None], m
+
+
 def kitti_data():
     """
     Load data from KITTI dataset

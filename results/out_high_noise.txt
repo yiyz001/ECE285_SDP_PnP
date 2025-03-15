@@ -1,0 +1,175 @@
+-------- Test With 3 Observations --------
+
+
+----------------- Test Done -----------------
+
+------------------ Summary ------------------
+
+PGD Average Time: 0.013339 
+
+PGD Multi Average Time: 0.236216 
+
+RGD Average Time: 0.014252 
+
+RGD Multi Average Time: 0.245449 
+
+SQP Average Time: 0.004828 
+
+SQP Multi Average Time: 0.080388 
+
+QCQP Average Time: 0.064576 
+
+QCQP Multi Average Time: 1.097219 
+
+SDP Average Time: 0.034198 
+
+Dual Average Time: 0.025452 
+
+----------------- Fail Cases -----------------
+
+SDP Fail: 0 Out of 50 Tests 
+
+Dual Fail: 0 Out of 50 Tests 
+
+-------------- End of Summary ----------------
+
+-------- Test With 4 Observations --------
+
+
+----------------- Test Done -----------------
+
+------------------ Summary ------------------
+
+PGD Average Time: 0.014588 
+
+PGD Multi Average Time: 0.261437 
+
+RGD Average Time: 0.015198 
+
+RGD Multi Average Time: 0.279709 
+
+SQP Average Time: 0.029337 
+
+SQP Multi Average Time: 0.478787 
+
+QCQP Average Time: 0.063189 
+
+QCQP Multi Average Time: 1.076887 
+
+SDP Average Time: 0.034472 
+
+Dual Average Time: 0.025689 
+
+----------------- Fail Cases -----------------
+
+SDP Fail: 0 Out of 50 Tests 
+
+Dual Fail: 0 Out of 50 Tests 
+
+-------------- End of Summary ----------------
+
+-------- Test With 5 Observations --------
+
+
+----------------- Test Done -----------------
+
+------------------ Summary ------------------
+
+PGD Average Time: 0.014740 
+
+PGD Multi Average Time: 0.264525 
+
+RGD Average Time: 0.018929 
+
+RGD Multi Average Time: 0.336445 
+
+SQP Average Time: 0.038740 
+
+SQP Multi Average Time: 0.698094 
+
+QCQP Average Time: 0.060949 
+
+QCQP Multi Average Time: 1.077637 
+
+SDP Average Time: 0.034969 
+
+Dual Average Time: 0.026520 
+
+----------------- Fail Cases -----------------
+
+SDP Fail: 0 Out of 50 Tests 
+
+Dual Fail: 0 Out of 50 Tests 
+
+-------------- End of Summary ----------------
+
+-------- Test With 8 Observations --------
+
+
+----------------- Test Done -----------------
+
+------------------ Summary ------------------
+
+PGD Average Time: 0.014674 
+
+PGD Multi Average Time: 0.262075 
+
+RGD Average Time: 0.020398 
+
+RGD Multi Average Time: 0.359948 
+
+SQP Average Time: 0.042730 
+
+SQP Multi Average Time: 0.736742 
+
+QCQP Average Time: 0.060410 
+
+QCQP Multi Average Time: 1.061660 
+
+SDP Average Time: 0.034974 
+
+Dual Average Time: 0.026450 
+
+----------------- Fail Cases -----------------
+
+SDP Fail: 0 Out of 50 Tests 
+
+Dual Fail: 0 Out of 50 Tests 
+
+-------------- End of Summary ----------------
+
+-------- Test With 10 Observations --------
+
+
+----------------- Test Done -----------------
+
+------------------ Summary ------------------
+
+PGD Average Time: 0.014607 
+
+PGD Multi Average Time: 0.261801 
+
+RGD Average Time: 0.021755 
+
+RGD Multi Average Time: 0.379955 
+
+SQP Average Time: 0.039281 
+
+SQP Multi Average Time: 0.691541 
+
+QCQP Average Time: 0.062369 
+
+QCQP Multi Average Time: 1.058410 
+
+SDP Average Time: 0.034795 
+
+Dual Average Time: 0.026781 
+
+----------------- Fail Cases -----------------
+
+SDP Fail: 0 Out of 50 Tests 
+
+Dual Fail: 0 Out of 50 Tests 
+
+-------------- End of Summary ----------------
+
