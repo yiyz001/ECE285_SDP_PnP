@@ -9,7 +9,7 @@ mpl.use("Qt5Agg")
 
 
 if __name__ == '__main__':
-    with open('results/test_results.pkl', 'rb') as handle:
+    with open('results/results_no_noise.pkl', 'rb') as handle:
         results = pickle.load(handle)
 
     prob_data = results['prob_data']
