@@ -188,6 +188,7 @@ if __name__ == '__main__':
                                       np.max(np.array(cost_sqp_multi)),
                                       np.max(np.array(cost_qcqp_multi)),
                                       np.max(np.array(cost_sdp))]))
+        hist_x_max = np.min((hist_x_max, 100))
 
         fig_hist = plt.figure(figsize=(12, 12), facecolor='white')
         fig_hist.suptitle("Cost Evaluation with %i Observations" % keys)
