@@ -146,4 +146,4 @@ def re_projection_error(R: np.ndarray, p: np.ndarray, m: np.ndarray, z: np.ndarr
     z_proj = np.sum(R[None, :, :] * m[:, None, :], axis=-1).squeeze() + p[None, :]
     z_scale = z_proj[:, 2]
 
-    return np.sum(np.linalg.norm(z_proj - z_scale[:, None] * z, axis=-1))
+    return np.sum(np.linalg.norm(z_proj - z_scale[:, None] * z, axis=-1)) / m.shape[0]
