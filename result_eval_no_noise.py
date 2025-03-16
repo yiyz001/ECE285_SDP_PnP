@@ -164,6 +164,7 @@ if __name__ == '__main__':
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_qcqp_multi), label='QCQP_Multi')
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_sdp), label='SDP')
         ax2.plot(np.arange(0, len(pgd[keys])), np.array(cost_dual), label='Dual')
+        ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=15)
         # ax2.legend(loc="best", fontsize=13)
         ax2.set_title('Cost Function Value')
 
@@ -177,31 +178,64 @@ if __name__ == '__main__':
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp), label='QCQP')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp_multi), label='QCQP_Multi')
         ax3.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sdp), label='SDP')
-        ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+        # ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
         # ax3.legend(loc="best", fontsize=13)
         ax3.set_title('Re-Projection Error')
+
+        # Histogram parameters
+        hist_x_min = 0
+        hist_x_max = np.max(np.array([np.max(np.array(cost_rgd_multi)),
+                                      np.max(np.array(cost_sqp_multi)),
+                                      np.max(np.array(cost_qcqp_multi)),
+                                      np.max(np.array(cost_sdp))]))
 
         fig_hist = plt.figure(figsize=(12, 12), facecolor='white')
         fig_hist.suptitle("Cost Evaluation with %i Observations" % keys)
         ax_hist1 = fig_hist.add_subplot(221, frameon=True)
-        ax_hist1.hist(np.array(cost_rgd_multi))
+        ax_hist1.hist(np.array(cost_rgd_multi), range=(hist_x_min, hist_x_max))
         ax_hist1.set_title('RGD Multi')
         ax_hist2 = fig_hist.add_subplot(222, frameon=True)
-        ax_hist2.hist(np.array(cost_sqp_multi))
+        ax_hist2.hist(np.array(cost_sqp_multi), range=(hist_x_min, hist_x_max))
         ax_hist2.set_title('SQP Multi')
         ax_hist3 = fig_hist.add_subplot(223, frameon=True)
-        ax_hist3.hist(np.array(cost_qcqp_multi))
+        ax_hist3.hist(np.array(cost_qcqp_multi), range=(hist_x_min, hist_x_max))
         ax_hist3.set_title('QCQP Multi')
         ax_hist4 = fig_hist.add_subplot(224, frameon=True)
-        ax_hist4.hist(np.array(cost_sdp))
+        ax_hist4.hist(np.array(cost_sdp), range=(hist_x_min, hist_x_max))
         ax_hist4.set_title('SDP')
 
+        # Plot primal and dual
         fig_dual = plt.figure(figsize=(8, 8), facecolor='white')
         fig_dual.suptitle("Cost Evaluation with %i Observations" % keys)
         ax_dual = fig_dual.add_subplot(111, frameon=True)
         ax_dual.plot(np.arange(0, len(pgd[keys])), np.array(cost_sdp), label='SDP')
         ax_dual.plot(np.arange(0, len(pgd[keys])), np.array(cost_dual), label='Dual')
         ax_dual.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
+        # Plot selected costs
+        fig_selected = plt.figure(figsize=(12, 4), facecolor='white')
+        fig_selected.suptitle("Test with %i Observations" % keys)
+        ax1s = fig_selected.add_subplot(131, frameon=True)
+        ax1s.plot(np.arange(0, len(pgd[keys])), np.array(sol_dist_rgd_multi), label='RGD_Multi')
+        ax1s.plot(np.arange(0, len(pgd[keys])), np.array(sol_dist_sqp_multi), label='SQP_Multi')
+        ax1s.plot(np.arange(0, len(pgd[keys])), np.array(sol_dist_qcqp_multi), label='QCQP_Multi')
+        ax1s.plot(np.arange(0, len(pgd[keys])), np.array(sol_dist_sdp), label='SDP')
+        ax1s.set_title('Distance to Ground Truth Rotation')
+
+        ax2s = fig_selected.add_subplot(132, frameon=True)
+        ax2s.plot(np.arange(0, len(pgd[keys])), np.array(cost_rgd_multi), label='RGD_Multi')
+        ax2s.plot(np.arange(0, len(pgd[keys])), np.array(cost_sqp_multi), label='SQP_Multi')
+        ax2s.plot(np.arange(0, len(pgd[keys])), np.array(cost_qcqp_multi), label='QCQP_Multi')
+        ax2s.plot(np.arange(0, len(pgd[keys])), np.array(cost_sdp), label='SDP')
+        ax2s.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=15)
+        ax2s.set_title('Cost Function Value')
+
+        ax3s = fig_selected.add_subplot(133, frameon=True)
+        ax3s.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_rgd_multi), label='RGD_Multi')
+        ax3s.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sqp_multi), label='SQP_Multi')
+        ax3s.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_qcqp_multi), label='QCQP_Multi')
+        ax3s.plot(np.arange(0, len(pgd[keys])), np.array(re_proj_error_sdp), label='SDP')
+        ax3s.set_title('Re-Projection Error')
 
         plt.show(block=True)
 
